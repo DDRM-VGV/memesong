@@ -106,10 +106,10 @@ namespace Memesong
             return true;
         }
         public void SceneChange(Scene scene,LoadSceneMode mode){
-            play(AreaClips[random.Next(WinClips.Count)]);
+            play(AreaClips[random.Next(AreaClips.Count)]);
         }
         public void OnDeath() {
-            play(LossClips[random.Next(WinClips.Count)]);
+            play(LossClips[random.Next(LossClips.Count)]);
         }
 
         public int currentTrack = 0;
