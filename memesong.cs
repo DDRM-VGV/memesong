@@ -66,8 +66,9 @@ namespace Memesong
             ModHooks.Instance.OnRecieveDeathEventHook += EnemyDied;
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneChange;
             ModHooks.Instance.BeforePlayerDeadHook += OnDeath;
-
+            ModHooks.Instance.TakeHealthHook += TakeDamage;
             poolPlayers(5);
+            GameManager.instance.StartCoroutine(playRandomly());
         }
 
         public void poolPlayers(int count){
@@ -89,13 +90,38 @@ namespace Memesong
            }
            return asrc;
         }
+        public IEnumerator playRandomly(){
+            var chance = 0.05;
+            while(true){
+                yield return new WaitForSeconds(30);
+                if(chance * 100 >= random.Next(100)){
+                    //should play
+                    play(InterruptClips[random.Next(InterruptClips.Count)]);
+                };
+            }
+        }
         public void play(AudioClip clip){
            AudioSource asrc = getPlayerFromPool();
            if(asrc == null){
                poolPlayers(5);
                 asrc = getPlayerFromPool();
            }
-           asrc.PlayOneShot(clip);
+           asrc.PlayOneShot(clip,GameManager.instance.GetImplicitCinematicVolume());
+        }
+
+        public AudioSource scenePlayer;
+        public void playForScene(AudioClip clip,bool forced = false){
+            if(scenePlayer == null){
+                var go = new GameObject("scene audio player");
+                scenePlayer = go.AddComponent<AudioSource>();
+                UnityEngine.Object.DontDestroyOnLoad(go);
+            }
+            if(forced){
+                scenePlayer.Stop();
+            }
+            if(!scenePlayer.isPlaying) {
+                scenePlayer.PlayOneShot(clip,GameManager.instance.GetImplicitCinematicVolume());
+            }
         }
 
 
@@ -106,10 +132,21 @@ namespace Memesong
             return true;
         }
         public void SceneChange(Scene scene,LoadSceneMode mode){
-            play(AreaClips[random.Next(AreaClips.Count)]);
+            playForScene(AreaClips[random.Next(AreaClips.Count)]);
         }
         public void OnDeath() {
-            play(LossClips[random.Next(LossClips.Count)]);
+            playForScene(LossClips[random.Next(LossClips.Count)],true);
+        }
+        public int TakeDamage( int damage ){
+            var roll = random.Next(100);            
+            if(10 >= roll){
+                play(InterruptClips[random.Next(InterruptClips.Count)]);
+            } else if(5 >= roll){
+                play(LossClips[random.Next(LossClips.Count)]);
+            } else if(1 >= roll){
+                play(WinClips[random.Next(WinClips.Count)]);
+            }
+            return damage;
         }
 
         public int currentTrack = 0;
