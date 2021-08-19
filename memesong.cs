@@ -141,9 +141,9 @@ namespace Memesong
             var roll = random.Next(100);            
             if(10 >= roll){
                 play(InterruptClips[random.Next(InterruptClips.Count)]);
-            } else if(5 >= roll){
+            } else if(15 >= roll){
                 play(LossClips[random.Next(LossClips.Count)]);
-            } else if(1 >= roll){
+            } else if(16 >= roll){
                 play(WinClips[random.Next(WinClips.Count)]);
             }
             return damage;
