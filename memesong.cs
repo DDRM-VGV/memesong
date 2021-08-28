@@ -1,10 +1,8 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 
-using GlobalEnums;
 using Modding;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,13 +12,12 @@ namespace Memesong
     
     public class Memesong : Mod, ITogglableMod
     {
-
         internal static Memesong Instance;
         static System.Random random = new System.Random();
 
         public override string GetVersion()
         {
-            return "1.3.0";
+            return "1.4.2";
         }
         public List<AudioClip> AreaClips = new List<AudioClip>();
         public List<AudioClip> WinClips = new List<AudioClip>();
@@ -28,6 +25,10 @@ namespace Memesong
         public List<AudioClip> InterruptClips = new List<AudioClip>();
 
         public List<AudioSource> players = new List<AudioSource>();
+
+        public int currentTrack = 0;
+        private bool Unloaded;
+        public AudioClip clips { get; private set; }
 
         public void GetClipsFromResources(){
             Assembly asm = Assembly.GetExecutingAssembly();
@@ -61,45 +62,12 @@ namespace Memesong
                 }
             }
         }
-        /*public void UnloadClipsFromResources()
-        {
-            Assembly asm = Assembly.GetExecutingAssembly();
-            foreach (string res in asm.GetManifestResourceNames())
-            {
-                if (!res.EndsWith(".wav")) continue; 
-                using (Stream s = asm.GetManifestResourceStream(res))
-                {
-                    if (s == null) continue;
-                    byte[] buffer = new byte[s.Length];
-                    s.Read(buffer, 0, buffer.Length);
-                    if (res.Contains("wins")) {
-                        clips = WavUtils.ToAudioClip(buffer);
-                        WinClips.Remove(clips);
-                    }
-                    if (res.Contains("losses")) {
-                        clips = WavUtils.ToAudioClip(buffer);
-                        LossClips.Add(clips);
-                    }
-                    if (res.Contains("area")) {
-                        clips = WavUtils.ToAudioClip(buffer);
-                        AreaClips.Add(clips);
-                    }
-                    if (res.Contains("interrupts")) {
-                        clips = WavUtils.ToAudioClip(buffer);
-                        WinClips.Add(clips);
-                        LossClips.Add(clips);
-                        InterruptClips.Add(clips);
-                    }
-                    s.Dispose();
-                }
-            }
-            asm = null;
-        }*/
 
         public override void Initialize()
         {
             Debug.Log("Initializing Memesong");
             Instance = this;
+
             AreaClips = new List<AudioClip>();
             WinClips = new List<AudioClip>();
             LossClips = new List<AudioClip>();
@@ -111,6 +79,7 @@ namespace Memesong
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneChange;
             ModHooks.Instance.BeforePlayerDeadHook += OnDeath;
             ModHooks.Instance.TakeHealthHook += TakeDamage;
+
             if (players.Count < 5)
             {
                 poolPlayers(5);
@@ -144,7 +113,7 @@ namespace Memesong
             var chance = 0.05;
             while(true){
                 yield return new WaitForSeconds(30);
-                if(chance * 100 >= random.Next(100)){
+                if(chance * 100 >= random.Next(100) && !Unloaded){
                     //should play
                     play(InterruptClips[random.Next(InterruptClips.Count)]);
                 };
@@ -205,11 +174,6 @@ namespace Memesong
             return damage;
         }
 
-        public int currentTrack = 0;
-        private bool Unloaded;
-
-        public AudioClip clips { get; private set; }
-
         public void update()
         {
             // if needed
@@ -226,42 +190,40 @@ namespace Memesong
         public void Unload()
         {
             Debug.Log("Unloading Memesong");
-            try
-            {
-                Debug.Log(AreaClips.Count.ToString());
-                Debug.Log(InterruptClips.Count.ToString());
-                Debug.Log(LossClips.Count.ToString());
-                Debug.Log(WinClips.Count.ToString());
-            } catch
-            {
-                LogError("failed to log");
-            }
 
             GameManager.instance.StopCoroutine(playRandomly());
-            //UnloadClipsFromResources();
-            AreaClips = null;
-            InterruptClips = null;
-            LossClips = null;
-            WinClips = null;
+            foreach (AudioClip clip in WinClips){
+                UnityEngine.Object.Destroy(clip);
+            }
+            foreach (AudioClip clip in AreaClips){
+                UnityEngine.Object.Destroy(clip);
+            }
+            foreach (AudioClip clip in LossClips){
+                UnityEngine.Object.Destroy(clip);
+            }
+            foreach (AudioClip clip in InterruptClips){
+                UnityEngine.Object.Destroy(clip);
+            }
+
+            AreaClips.Clear();
+            InterruptClips.Clear();
+            LossClips.Clear();
+            WinClips.Clear();
+
+            foreach (var player in players){
+                UnityEngine.Object.Destroy(player.gameObject);
+            }
+            players.Clear();
+
             ModHooks.Instance.HeroUpdateHook -= update;
             ModHooks.Instance.OnRecieveDeathEventHook -= EnemyDied;
             UnityEngine.SceneManagement.SceneManager.sceneLoaded -= SceneChange;
             ModHooks.Instance.BeforePlayerDeadHook -= OnDeath;
             ModHooks.Instance.TakeHealthHook -= TakeDamage;
+
+            Instance = null;
             Unloaded = true;
             Debug.Log("Done unloading Memesong");
-            try
-            {
-                Debug.Log(AreaClips.Count.ToString());
-                Debug.Log(InterruptClips.Count.ToString());
-                Debug.Log(LossClips.Count.ToString());
-                Debug.Log(WinClips.Count.ToString());
-
-            } catch
-            {
-                LogError("failed to log #2");
-            }
         }
     }
-
 }
