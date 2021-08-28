@@ -38,9 +38,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
     <PropertyGroup>
-    <APIfiles>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</APIfiles>
-    <Vanillafiles>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</Vanillafiles>
-		<HollowKnightModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods</HollowKnightModsDirectory>
+    <APIfiles>..\HollowKnight.Modding\OutputFinal\hollow_knight_Data\Managed\</APIfiles>
+    <Vanillafiles>.\Vanilla</Vanillafiles>
+		<HollowKnightModsDirectory>..\linkedtoHKMods</HollowKnightModsDirectory>
   </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
       <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(HollowKnightModsDirectory)"/>
