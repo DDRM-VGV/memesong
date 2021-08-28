@@ -37,27 +37,20 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-    <PropertyGroup>
-        <APIfiles>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</APIfiles>
-		<HollowKnightModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods</HollowKnightModsDirectory>
-  </PropertyGroup>
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(HollowKnightModsDirectory)"/>
-  </Target>
   <ItemGroup>
     <Reference Include="System.Core" />
     <Reference Include="Assembly-CSharp">
-      <HintPath>$(APIfiles)\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\HollowKnight.Modding\OutputFinal\hollow_knight_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>$(APIfiles)\UnityEngine.dll</HintPath>
+      <HintPath>.\Vanilla\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(APIfiles)/UnityEngine.AudioModule.dll</HintPath>
+      <HintPath>./lib/UnityEngine.AudioModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(APIfiles)\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>.\Vanilla\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

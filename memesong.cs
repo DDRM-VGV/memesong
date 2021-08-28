@@ -12,7 +12,7 @@ using UnityEngine.SceneManagement;
 namespace Memesong
 {
     
-    public class Memesong : Mod
+    public class Memesong : Mod, ITogglableMod
     {
 
         internal static Memesong Instance;
@@ -20,7 +20,7 @@ namespace Memesong
 
         public override string GetVersion()
         {
-            return "1.0";
+            return "1.2.8";
         }
         public List<AudioClip> AreaClips = new List<AudioClip>();
         public List<AudioClip> WinClips = new List<AudioClip>();
@@ -33,35 +33,74 @@ namespace Memesong
             Assembly asm = Assembly.GetExecutingAssembly();
             foreach (string res in asm.GetManifestResourceNames())
             {   
-                if(!res.EndsWith(".wav")) { continue; } 
+                if(!res.EndsWith(".wav")) continue;
                 using (Stream s = asm.GetManifestResourceStream(res))
                 {
                         if (s == null) continue;
                         byte[] buffer = new byte[s.Length];
                         s.Read(buffer, 0, buffer.Length);
                         if(res.Contains("wins")){
-                            WinClips.Add(WavUtils.ToAudioClip(buffer));
+                            clips = WavUtils.ToAudioClip(buffer);
+                            WinClips.Add(clips);
                         }
                         if(res.Contains("losses")){
-                            LossClips.Add(WavUtils.ToAudioClip(buffer));
+                            clips = WavUtils.ToAudioClip(buffer);
+                            LossClips.Add(clips);
                         }
                         if(res.Contains("area")){
-                            AreaClips.Add(WavUtils.ToAudioClip(buffer));
+                            clips = WavUtils.ToAudioClip(buffer);
+                            AreaClips.Add(clips);
                         }
                         if(res.Contains("interrupts")){
-                            WinClips.Add(WavUtils.ToAudioClip(buffer));
-                            LossClips.Add(WavUtils.ToAudioClip(buffer));
-                            InterruptClips.Add(WavUtils.ToAudioClip(buffer));
+                            clips = WavUtils.ToAudioClip(buffer);
+                            WinClips.Add(clips);
+                            LossClips.Add(clips);
+                            InterruptClips.Add(clips);
                         }
                         s.Dispose();
                 }
             }
+        }
+        public void UnloadClipsFromResources()
+        {
+            Assembly asm = Assembly.GetExecutingAssembly();
+            foreach (string res in asm.GetManifestResourceNames())
+            {
+                if (!res.EndsWith(".wav")) continue; 
+                using (Stream s = asm.GetManifestResourceStream(res))
+                {
+                    if (s == null) continue;
+                    byte[] buffer = new byte[s.Length];
+                    s.Read(buffer, 0, buffer.Length);
+                    if (res.Contains("wins")) {
+                        clips = WavUtils.ToAudioClip(buffer);
+                        WinClips.Remove(clips);
+                    }
+                    if (res.Contains("losses")) {
+                        clips = WavUtils.ToAudioClip(buffer);
+                        LossClips.Add(clips);
+                    }
+                    if (res.Contains("area")) {
+                        clips = WavUtils.ToAudioClip(buffer);
+                        AreaClips.Add(clips);
+                    }
+                    if (res.Contains("interrupts")) {
+                        clips = WavUtils.ToAudioClip(buffer);
+                        WinClips.Add(clips);
+                        LossClips.Add(clips);
+                        InterruptClips.Add(clips);
+                    }
+                    s.Dispose();
+                }
+            }
+            asm = null;
         }
 
         public override void Initialize()
         {
             Instance = this;
             GetClipsFromResources();
+
             ModHooks.Instance.HeroUpdateHook += update;
             ModHooks.Instance.OnRecieveDeathEventHook += EnemyDied;
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneChange;
@@ -69,6 +108,8 @@ namespace Memesong
             ModHooks.Instance.TakeHealthHook += TakeDamage;
             poolPlayers(5);
             GameManager.instance.StartCoroutine(playRandomly());
+
+            Unloaded = false;
         }
 
         public void poolPlayers(int count){
@@ -120,6 +161,7 @@ namespace Memesong
                 scenePlayer.Stop();
             }
             if(!scenePlayer.isPlaying) {
+                if (Unloaded) return;
                 scenePlayer.PlayOneShot(clip,GameManager.instance.GetImplicitCinematicVolume());
             }
         }
@@ -127,19 +169,24 @@ namespace Memesong
 
         public bool EnemyDied( EnemyDeathEffects enemyDeathEffects, bool eventAlreadyRecieved,ref float? attackDirection, ref bool resetDeathEvent,ref bool spellBurn, ref bool isWatery ){
             if(!eventAlreadyRecieved){
-                play(WinClips[random.Next(WinClips.Count)]);
+                if (!Unloaded){
+                    play(WinClips[random.Next(WinClips.Count)]);
+                }
             }
             return true;
         }
         public void SceneChange(Scene scene,LoadSceneMode mode){
+            if (Unloaded) return;
             playForScene(AreaClips[random.Next(AreaClips.Count)]);
         }
         public void OnDeath() {
+            if (Unloaded) return;
             playForScene(LossClips[random.Next(LossClips.Count)],true);
         }
         public int TakeDamage( int damage ){
-            var roll = random.Next(100);            
-            if(10 >= roll){
+            var roll = random.Next(100);
+            if (Unloaded) return damage;
+            if (10 >= roll){
                 play(InterruptClips[random.Next(InterruptClips.Count)]);
             } else if(15 >= roll){
                 play(LossClips[random.Next(LossClips.Count)]);
@@ -150,10 +197,14 @@ namespace Memesong
         }
 
         public int currentTrack = 0;
+        private bool Unloaded;
+
+        public AudioClip clips { get; private set; }
+
         public void update()
         {
             // if needed
-            if(false && Input.GetKeyDown(KeyCode.C)){
+            if(false && Input.GetKeyDown(KeyCode.C) && !Unloaded){
                 if(currentTrack == WinClips.Count){
                     currentTrack = 0;
                 } else {
@@ -163,6 +214,16 @@ namespace Memesong
             }
         }
 
+        public void Unload()
+        {
+            GameManager.instance.StopCoroutine(playRandomly());
+            UnloadClipsFromResources();
+            AreaClips = null;
+            InterruptClips = null;
+            LossClips = null;
+            WinClips = null;
+            Unloaded = true;
+        }
     }
 
 }
