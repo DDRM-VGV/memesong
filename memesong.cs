@@ -17,7 +17,7 @@ namespace Memesong
 
         public override string GetVersion()
         {
-            return "1.4.2";
+            return "1.4.3";
         }
         public List<AudioClip> AreaClips = new List<AudioClip>();
         public List<AudioClip> WinClips = new List<AudioClip>();
@@ -27,7 +27,9 @@ namespace Memesong
         public List<AudioSource> players = new List<AudioSource>();
 
         public int currentTrack = 0;
-        private bool Unloaded;
+        private bool Unloaded = true;
+
+        private Coroutine playRandomlyCoroutine;
         public AudioClip clips { get; private set; }
 
         public void GetClipsFromResources(){
@@ -65,6 +67,7 @@ namespace Memesong
 
         public override void Initialize()
         {
+            if(!Unloaded) { return; }
             Debug.Log("Initializing Memesong");
             Instance = this;
 
@@ -84,7 +87,7 @@ namespace Memesong
             {
                 poolPlayers(5);
             }
-            GameManager.instance.StartCoroutine(playRandomly());
+            playRandomlyCoroutine = GameManager.instance.StartCoroutine(playRandomly());
 
             Unloaded = false;
             Debug.Log("Done initializing Memesong");
@@ -97,7 +100,7 @@ namespace Memesong
                 players.Add(asrc);
                 UnityEngine.Object.DontDestroyOnLoad(go);
             }
-            Log(" total players : "+ players.Count);
+            Log("Total players : "+ players.Count);
         }
         public AudioSource getPlayerFromPool(){
            AudioSource asrc = null;
@@ -165,8 +168,8 @@ namespace Memesong
             playForScene(LossClips[random.Next(LossClips.Count)],true);
         }
         public int TakeDamage( int damage ){
-            var roll = random.Next(100);
             if (Unloaded) return damage;
+            var roll = random.Next(100);
             if (10 >= roll){
                 play(InterruptClips[random.Next(InterruptClips.Count)]);
             } else if(15 >= roll){
@@ -190,33 +193,36 @@ namespace Memesong
             }
         }
 
+        public static void cleanList<T>(List<T> list) where T : UnityEngine.Object{
+            foreach (T item in list){
+                UnityEngine.Object.Destroy(item);
+            }
+            list.Clear();
+        }
+        public static void cleanList(List<Component> list){
+            foreach (Component item in list){
+                if(item.gameObject == null){
+                    UnityEngine.Object.Destroy(item);
+                } else {
+                    UnityEngine.Object.Destroy(item.gameObject);
+                }
+            }
+            list.Clear();
+        }
         public void Unload()
         {
             Debug.Log("Unloading Memesong");
 
-            GameManager.instance.StopCoroutine(playRandomly());
-            foreach (AudioClip clip in WinClips){
-                UnityEngine.Object.Destroy(clip);
-            }
-            foreach (AudioClip clip in AreaClips){
-                UnityEngine.Object.Destroy(clip);
-            }
-            foreach (AudioClip clip in LossClips){
-                UnityEngine.Object.Destroy(clip);
-            }
-            foreach (AudioClip clip in InterruptClips){
-                UnityEngine.Object.Destroy(clip);
+            if(playRandomlyCoroutine != null){
+                GameManager.instance.StopCoroutine(playRandomlyCoroutine);
             }
 
-            AreaClips.Clear();
-            InterruptClips.Clear();
-            LossClips.Clear();
-            WinClips.Clear();
-
-            foreach (var player in players){
-                UnityEngine.Object.Destroy(player.gameObject);
-            }
-            players.Clear();
+            cleanList<AudioClip>(WinClips);
+            cleanList<AudioClip>(AreaClips);
+            cleanList<AudioClip>(LossClips);
+            cleanList<AudioClip>(InterruptClips);
+            cleanList<AudioClip>(InterruptClips);
+            cleanList<AudioSource>(players);
 
             ModHooks.Instance.HeroUpdateHook -= update;
             ModHooks.Instance.OnRecieveDeathEventHook -= EnemyDied;
