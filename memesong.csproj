@@ -38,7 +38,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
     <PropertyGroup>
-        <APIfiles>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</APIfiles>
+    <APIfiles>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</APIfiles>
+    <Vanillafiles>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</APIfiles>
 		<HollowKnightModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods</HollowKnightModsDirectory>
   </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
@@ -50,14 +51,14 @@
       <HintPath>$(APIfiles)\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>$(APIfiles)\UnityEngine.dll</HintPath>
+      <HintPath>$(Vanillafiles)\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(APIfiles)/UnityEngine.AudioModule.dll</HintPath>
+      <HintPath>$(Vanillafiles)/UnityEngine.AudioModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(APIfiles)\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(Vanillafiles)\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -68,7 +69,6 @@
     <EmbeddedResource Include="res\wins\*.wav" />
     <EmbeddedResource Include="res\losses\*.wav" />
     <EmbeddedResource Include="res\interrupts\*.wav" />
-
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
