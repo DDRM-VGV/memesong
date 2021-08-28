@@ -40,7 +40,7 @@
     <PropertyGroup>
     <APIfiles>..\HollowKnight.Modding\OutputFinal\hollow_knight_Data\Managed\</APIfiles>
     <Vanillafiles>.\Vanilla</Vanillafiles>
-		<HollowKnightModsDirectory>..\linkedtoHKMods</HollowKnightModsDirectory>
+    <HollowKnightModsDirectory>..\linkedtoHKMods</HollowKnightModsDirectory>
   </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
       <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(HollowKnightModsDirectory)"/>
