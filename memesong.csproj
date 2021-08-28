@@ -39,7 +39,7 @@
   </PropertyGroup>
     <PropertyGroup>
     <APIfiles>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</APIfiles>
-    <Vanillafiles>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</APIfiles>
+    <Vanillafiles>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</Vanillafiles>
 		<HollowKnightModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods</HollowKnightModsDirectory>
   </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
