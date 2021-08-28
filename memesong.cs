@@ -13,11 +13,9 @@ namespace Memesong
     public class Memesong : Mod, ITogglableMod
     {
         internal static Memesong Instance;
-        static System.Random random = new System.Random();
-
         public override string GetVersion()
         {
-            return "1.4.3";
+            return "1.5.0";
         }
         public List<AudioClip> AreaClips = new List<AudioClip>();
         public List<AudioClip> WinClips = new List<AudioClip>();
@@ -32,51 +30,35 @@ namespace Memesong
         private Coroutine playRandomlyCoroutine;
         public AudioClip clips { get; private set; }
 
-        public void GetClipsFromResources(){
-            Assembly asm = Assembly.GetExecutingAssembly();
-            foreach (string res in asm.GetManifestResourceNames())
-            {   
-                if(!res.EndsWith(".wav")) continue;
-                using (Stream s = asm.GetManifestResourceStream(res))
-                {
-                        if (s == null) continue;
-                        byte[] buffer = new byte[s.Length];
-                        s.Read(buffer, 0, buffer.Length);
-                        if(res.Contains("wins")){
-                            clips = WavUtils.ToAudioClip(buffer);
-                            WinClips.Add(clips);
-                        }
-                        if(res.Contains("losses")){
-                            clips = WavUtils.ToAudioClip(buffer);
-                            LossClips.Add(clips);
-                        }
-                        if(res.Contains("area")){
-                            clips = WavUtils.ToAudioClip(buffer);
-                            AreaClips.Add(clips);
-                        }
-                        if(res.Contains("interrupts")){
-                            clips = WavUtils.ToAudioClip(buffer);
-                            WinClips.Add(clips);
-                            LossClips.Add(clips);
-                            InterruptClips.Add(clips);
-                        }
-                        s.Dispose();
-                }
+        public void GetClipsFromDisk(){
+            if(!Directory.Exists(Utils.path)){
+                return;
             }
+
+            WinClips.AddClipsFromDirectory(Path.Combine(Utils.path,Utils.wins));
+            LossClips.AddClipsFromDirectory(Path.Combine(Utils.path,Utils.losses));
+            AreaClips.AddClipsFromDirectory(Path.Combine(Utils.path,Utils.area));
+            InterruptClips.AddClipsFromDirectory(Path.Combine(Utils.path,Utils.interrupts));
+
+            foreach(var clip in InterruptClips){
+                WinClips.Add(clip);
+                LossClips.Add(clip);
+            }
+
         }
 
         public override void Initialize()
         {
             if(!Unloaded) { return; }
-            Debug.Log("Initializing Memesong");
+            Log("Initializing Memesong");
             Instance = this;
 
             AreaClips = new List<AudioClip>();
             WinClips = new List<AudioClip>();
             LossClips = new List<AudioClip>();
             InterruptClips = new List<AudioClip>();
-            GetClipsFromResources();
-
+            Utils.ExtractAudioFiles();
+            GetClipsFromDisk();
             ModHooks.Instance.HeroUpdateHook += update;
             ModHooks.Instance.OnRecieveDeathEventHook += EnemyDied;
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneChange;
@@ -116,9 +98,9 @@ namespace Memesong
             var chance = 0.05;
             while(true){
                 yield return new WaitForSeconds(30);
-                if(chance * 100 >= random.Next(100) && !Unloaded){
+                if(chance * 100 >= Utils.random.Next(100) && !Unloaded){
                     //should play
-                    play(InterruptClips[random.Next(InterruptClips.Count)]);
+                    play(InterruptClips[Utils.random.Next(InterruptClips.Count)]);
                 };
             }
         }
@@ -151,31 +133,32 @@ namespace Memesong
         public bool EnemyDied( EnemyDeathEffects enemyDeathEffects, bool eventAlreadyRecieved,ref float? attackDirection, ref bool resetDeathEvent,ref bool spellBurn, ref bool isWatery ){
             if(!eventAlreadyRecieved){
                 if (!Unloaded){
-                    play(WinClips[random.Next(WinClips.Count)]);
+                    play(WinClips[Utils.random.Next(WinClips.Count)]);
                 }
             }
             return true;
         }
         public void SceneChange(Scene scene,LoadSceneMode mode){
             if (Unloaded) return;
-            var roll = random.Next(100);            
+            if(!GameManager.instance.IsGameplayScene()) return;
+            var roll = Utils.random.Next(100);            
             if(70 >= roll){
-                playForScene(AreaClips[random.Next(AreaClips.Count)]);
+                playForScene(AreaClips[Utils.random.Next(AreaClips.Count)]);
             }
         }
         public void OnDeath() {
             if (Unloaded) return;
-            playForScene(LossClips[random.Next(LossClips.Count)],true);
+            playForScene(LossClips[Utils.random.Next(LossClips.Count)],true);
         }
         public int TakeDamage( int damage ){
             if (Unloaded) return damage;
-            var roll = random.Next(100);
+            var roll = Utils.random.Next(100);
             if (10 >= roll){
-                play(InterruptClips[random.Next(InterruptClips.Count)]);
+                play(InterruptClips[Utils.random.Next(InterruptClips.Count)]);
             } else if(15 >= roll){
-                play(LossClips[random.Next(LossClips.Count)]);
+                play(LossClips[Utils.random.Next(LossClips.Count)]);
             } else if(16 >= roll){
-                play(WinClips[random.Next(WinClips.Count)]);
+                play(WinClips[Utils.random.Next(WinClips.Count)]);
             }
             return damage;
         }
