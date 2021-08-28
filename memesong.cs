@@ -132,7 +132,10 @@ namespace Memesong
             return true;
         }
         public void SceneChange(Scene scene,LoadSceneMode mode){
-            playForScene(AreaClips[random.Next(AreaClips.Count)]);
+            var roll = random.Next(100);            
+            if(70 >= roll){
+                playForScene(AreaClips[random.Next(AreaClips.Count)]);
+            }
         }
         public void OnDeath() {
             playForScene(LossClips[random.Next(LossClips.Count)],true);
