@@ -140,6 +140,7 @@ namespace Memesong
         }
         public void SceneChange(Scene scene,LoadSceneMode mode){
             if (Unloaded) return;
+            if(!GameManager.instance.IsGameplayScene()) return;
             var roll = Utils.random.Next(100);            
             if(70 >= roll){
                 playForScene(AreaClips[Utils.random.Next(AreaClips.Count)]);
