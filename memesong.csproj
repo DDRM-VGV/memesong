@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="memesong.cs" />
+    <Compile Include="Utils.cs" />
     <Compile Include="WavUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="res\area\*.wav" />
