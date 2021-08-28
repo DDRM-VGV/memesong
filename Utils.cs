@@ -1,6 +1,9 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Collections;
+using System.Collections.Generic;
+
 using UnityEngine;
 
 using static Modding.Logger;
@@ -63,6 +66,15 @@ namespace Memesong
             }
         }
         
+        public static void AddClipsFromDirectory(this List<AudioClip> Clips, string DirPath){
+            if(Directory.Exists(DirPath)){
+                foreach(var file in Directory.GetFiles(DirPath)){
+                    var buffer = File.ReadAllBytes(file);
+                    var clip = WavUtils.ToAudioClip(buffer);
+                    Clips.Add(clip);
+                }
+            }
+        }
 
     }
 }

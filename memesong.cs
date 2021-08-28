@@ -30,75 +30,19 @@ namespace Memesong
         private Coroutine playRandomlyCoroutine;
         public AudioClip clips { get; private set; }
 
-        public void GetClipsFromResources(){
-            Assembly asm = Assembly.GetExecutingAssembly();
-            foreach (string res in asm.GetManifestResourceNames())
-            {   
-                if(!res.EndsWith(".wav")) continue;
-                using (Stream s = asm.GetManifestResourceStream(res))
-                {
-                        if (s == null) continue;
-                        byte[] buffer = new byte[s.Length];
-                        s.Read(buffer, 0, buffer.Length);
-                        if(res.Contains(Utils.wins)){
-                            clips = WavUtils.ToAudioClip(buffer);
-                            WinClips.Add(clips);
-                        }
-                        if(res.Contains(Utils.losses)){
-                            clips = WavUtils.ToAudioClip(buffer);
-                            LossClips.Add(clips);
-                        }
-                        if(res.Contains(Utils.area)){
-                            clips = WavUtils.ToAudioClip(buffer);
-                            AreaClips.Add(clips);
-                        }
-                        if(res.Contains(Utils.interrupts)){
-                            clips = WavUtils.ToAudioClip(buffer);
-                            WinClips.Add(clips);
-                            LossClips.Add(clips);
-                            InterruptClips.Add(clips);
-                        }
-                        s.Dispose();
-                }
-            }
-        }
         public void GetClipsFromDisk(){
             if(!Directory.Exists(Utils.path)){
                 return;
             }
-            
-            if(Directory.Exists(Path.Combine(Utils.path,Utils.wins))){
-                foreach(var file in Directory.GetFiles(Path.Combine(Utils.path,Utils.wins))){
-                    var buffer = File.ReadAllBytes(file);
-                    var clips = WavUtils.ToAudioClip(buffer);
-                    WinClips.Add(clips);
-                }
-            }
 
-            if(Directory.Exists(Path.Combine(Utils.path,Utils.losses))){
-                foreach(var file in Directory.GetFiles(Path.Combine(Utils.path,Utils.losses))){
-                    var buffer = File.ReadAllBytes(file);
-                    var clips = WavUtils.ToAudioClip(buffer);
-                    LossClips.Add(clips);
-                }
-            }
+            WinClips.AddClipsFromDirectory(Path.Combine(Utils.path,Utils.wins));
+            LossClips.AddClipsFromDirectory(Path.Combine(Utils.path,Utils.losses));
+            AreaClips.AddClipsFromDirectory(Path.Combine(Utils.path,Utils.area));
+            InterruptClips.AddClipsFromDirectory(Path.Combine(Utils.path,Utils.interrupts));
 
-            if(Directory.Exists(Path.Combine(Utils.path,Utils.area))){
-                foreach(var file in Directory.GetFiles(Path.Combine(Utils.path,Utils.area))){
-                    var buffer = File.ReadAllBytes(file);
-                    var clips = WavUtils.ToAudioClip(buffer);
-                    AreaClips.Add(clips);
-                }
-            }
-
-            if(Directory.Exists(Path.Combine(Utils.path,Utils.interrupts))){
-                foreach(var file in Directory.GetFiles(Path.Combine(Utils.path,Utils.interrupts))){
-                    var buffer = File.ReadAllBytes(file);
-                    var clips = WavUtils.ToAudioClip(buffer);
-                    WinClips.Add(clips);
-                    LossClips.Add(clips);
-                    InterruptClips.Add(clips);
-                }
+            foreach(var clip in InterruptClips){
+                WinClips.Add(clip);
+                LossClips.Add(clip);
             }
 
         }
