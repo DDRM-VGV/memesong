@@ -20,7 +20,7 @@ namespace Memesong
 
         public override string GetVersion()
         {
-            return "1.2.8";
+            return "1.3.0";
         }
         public List<AudioClip> AreaClips = new List<AudioClip>();
         public List<AudioClip> WinClips = new List<AudioClip>();
@@ -61,7 +61,7 @@ namespace Memesong
                 }
             }
         }
-        public void UnloadClipsFromResources()
+        /*public void UnloadClipsFromResources()
         {
             Assembly asm = Assembly.GetExecutingAssembly();
             foreach (string res in asm.GetManifestResourceNames())
@@ -94,11 +94,16 @@ namespace Memesong
                 }
             }
             asm = null;
-        }
+        }*/
 
         public override void Initialize()
         {
+            Debug.Log("Initializing Memesong");
             Instance = this;
+            AreaClips = new List<AudioClip>();
+            WinClips = new List<AudioClip>();
+            LossClips = new List<AudioClip>();
+            InterruptClips = new List<AudioClip>();
             GetClipsFromResources();
 
             ModHooks.Instance.HeroUpdateHook += update;
@@ -106,10 +111,14 @@ namespace Memesong
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneChange;
             ModHooks.Instance.BeforePlayerDeadHook += OnDeath;
             ModHooks.Instance.TakeHealthHook += TakeDamage;
-            poolPlayers(5);
+            if (players.Count < 5)
+            {
+                poolPlayers(5);
+            }
             GameManager.instance.StartCoroutine(playRandomly());
 
             Unloaded = false;
+            Debug.Log("Done initializing Memesong");
         }
 
         public void poolPlayers(int count){
@@ -216,13 +225,42 @@ namespace Memesong
 
         public void Unload()
         {
+            Debug.Log("Unloading Memesong");
+            try
+            {
+                Debug.Log(AreaClips.Count.ToString());
+                Debug.Log(InterruptClips.Count.ToString());
+                Debug.Log(LossClips.Count.ToString());
+                Debug.Log(WinClips.Count.ToString());
+            } catch
+            {
+                LogError("failed to log");
+            }
+
             GameManager.instance.StopCoroutine(playRandomly());
-            UnloadClipsFromResources();
+            //UnloadClipsFromResources();
             AreaClips = null;
             InterruptClips = null;
             LossClips = null;
             WinClips = null;
+            ModHooks.Instance.HeroUpdateHook -= update;
+            ModHooks.Instance.OnRecieveDeathEventHook -= EnemyDied;
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= SceneChange;
+            ModHooks.Instance.BeforePlayerDeadHook -= OnDeath;
+            ModHooks.Instance.TakeHealthHook -= TakeDamage;
             Unloaded = true;
+            Debug.Log("Done unloading Memesong");
+            try
+            {
+                Debug.Log(AreaClips.Count.ToString());
+                Debug.Log(InterruptClips.Count.ToString());
+                Debug.Log(LossClips.Count.ToString());
+                Debug.Log(WinClips.Count.ToString());
+
+            } catch
+            {
+                LogError("failed to log #2");
+            }
         }
     }
 
