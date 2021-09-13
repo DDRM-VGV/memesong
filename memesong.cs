@@ -59,11 +59,11 @@ namespace Memesong
             InterruptClips = new List<AudioClip>();
             Utils.ExtractAudioFiles();
             GetClipsFromDisk();
-            ModHooks.Instance.HeroUpdateHook += update;
-            ModHooks.Instance.OnRecieveDeathEventHook += EnemyDied;
+            ModHooks.HeroUpdateHook += update;
+            ModHooks.OnReceiveDeathEventHook += EnemyDied;
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneChange;
-            ModHooks.Instance.BeforePlayerDeadHook += OnDeath;
-            ModHooks.Instance.TakeHealthHook += TakeDamage;
+            ModHooks.BeforePlayerDeadHook += OnDeath;
+            ModHooks.TakeHealthHook += TakeDamage;
 
             if (players.Count < 5)
             {
@@ -130,13 +130,12 @@ namespace Memesong
         }
 
 
-        public bool EnemyDied( EnemyDeathEffects enemyDeathEffects, bool eventAlreadyRecieved,ref float? attackDirection, ref bool resetDeathEvent,ref bool spellBurn, ref bool isWatery ){
+        public void EnemyDied( EnemyDeathEffects enemyDeathEffects, bool eventAlreadyRecieved,ref float? attackDirection, ref bool resetDeathEvent,ref bool spellBurn, ref bool isWatery ){
             if(!eventAlreadyRecieved){
                 if (!Unloaded){
                     play(WinClips[Utils.random.Next(WinClips.Count)]);
                 }
             }
-            return true;
         }
         public void SceneChange(Scene scene,LoadSceneMode mode){
             if (Unloaded) return;
@@ -207,11 +206,11 @@ namespace Memesong
             cleanList<AudioClip>(InterruptClips);
             cleanList<AudioSource>(players);
 
-            ModHooks.Instance.HeroUpdateHook -= update;
-            ModHooks.Instance.OnRecieveDeathEventHook -= EnemyDied;
+            ModHooks.HeroUpdateHook -= update;
+            ModHooks.OnReceiveDeathEventHook -= EnemyDied;
             UnityEngine.SceneManagement.SceneManager.sceneLoaded -= SceneChange;
-            ModHooks.Instance.BeforePlayerDeadHook -= OnDeath;
-            ModHooks.Instance.TakeHealthHook -= TakeDamage;
+            ModHooks.BeforePlayerDeadHook -= OnDeath;
+            ModHooks.TakeHealthHook -= TakeDamage;
 
             Instance = null;
             Unloaded = true;
