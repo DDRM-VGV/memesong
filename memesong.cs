@@ -15,7 +15,7 @@ namespace Memesong
         internal static Memesong Instance;
         public override string GetVersion()
         {
-            return "1.5.0";
+            return "1.6.0";
         }
         public List<AudioClip> AreaClips = new List<AudioClip>();
         public List<AudioClip> WinClips = new List<AudioClip>();
